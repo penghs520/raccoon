@@ -20,6 +20,8 @@ pub enum ConditionItem {
     CardType(CardTypeOperator), //卡片类型条件项
     State, //卡片活跃状态条件项
     Status, //卡片价值流状态条件项
+    Code(String),
+    Title(String),
     Text(TextOperator), //文本属性条件项
     Number(NumberOperator), //数字属性条件项
     Enum(EnumOperator), //枚举属性条件项
