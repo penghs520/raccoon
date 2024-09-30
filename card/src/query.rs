@@ -5,16 +5,17 @@ use std::collections::HashMap;
 use std::fmt::{Debug, Display};
 use std::time::Duration;
 use std::{error, fmt};
+use serde::{Deserialize, Serialize};
 
 //查询条件
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Condition {
     items: Vec<ConditionItem>, //且条件
     logic_condition_bulks: Vec<LogicConditionBulk>, //多个或条件集，集之间是And关系
 }
 
 //单个条件项
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum ConditionItem {
     CardType(CardTypeOperator), //卡片类型条件项
     State, //卡片活跃状态条件项
@@ -27,31 +28,31 @@ pub enum ConditionItem {
 }
 
 //卡片类型条件项的操作符，仅支持AnyIn
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum CardTypeOperator {
     AnyIn(Vec<String>)
 }
 
 //文本属性条件项的操作符
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum TextOperator {
     StartsWith(String),
     Contains(String),
     NotContains(String),
     Equals(PropertyValue<String>),
     NotEquals(PropertyValue<String>),
-    IsEmpty(bool),
+    IsNull(bool),
 }
 
 //普通属性类型条件项的值，可能是一个引用值，或者是一个直接的静态值
-#[derive(Debug, Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum PropertyValue<T> {
     ReferValue(ReferPoint, Path, String), //引用值
     StaticValue(T), //某个具体的值
 }
 
 //引用参考点
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum ReferPoint {
     CurrentMember, //引用自当前成员
     CurrentCard, //引用自当前卡
@@ -59,21 +60,21 @@ pub enum ReferPoint {
 }
 
 //关联关系路径
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Path {
-    Segment(LinkOperator, Path),
+    Segment(LinkOperator, Box<Path>),
     Nil,
 }
 
 //关联描述符，由关联关系类型和方向构成
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum LinkDescriptor {
     Src(String),
     Dest(String),
 }
 
 //数字属性条件项的操作符
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum NumberOperator {
     LessThan(PropertyValue<i64>),
     GreaterThan(PropertyValue<i64>),
@@ -87,7 +88,7 @@ pub enum NumberOperator {
 }
 
 //枚举属性条件项的操作符
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum EnumOperator {
     AnyIn(PropertyValue<Vec<String>>),
     AllIn(PropertyValue<Vec<String>>),
@@ -96,7 +97,7 @@ pub enum EnumOperator {
     IsNull(bool),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum DateOperator {
     //日期支持精度，精度由日期属性定义决定
     After(PropertyValue<u64>),
@@ -110,7 +111,7 @@ pub enum DateOperator {
 
 
 //关联属性条件项的操作符
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum LinkOperator {
     AnyIn(LinkValue),
     AllIn(LinkValue),
@@ -120,20 +121,20 @@ pub enum LinkOperator {
 }
 
 //关联属性条件项的值
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum LinkValue {
     ReferValue(ReferPoint, Vec<LinkDescriptor>),
     StaticValue(Vec<String>),
 }
 
 //或条件集，由多个或条件组构成，组之间是And的关系
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct LogicConditionBulk {
-    logic_parts: Vec<LogicConditionGroup>, // And
+    groups: Vec<LogicConditionGroup>, // And
 }
 
 //或条件组，有多个之间为Or关系的条件项组成
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct LogicConditionGroup {
     items: Vec<ConditionItem>, //Or
 }
@@ -148,7 +149,7 @@ pub struct QueryResult<'a> {
 
 
 //查询时指定的分页参数
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Page {
     Limit(u32/*num*/, u8/*size*/),
     LimitAfterSort(Sort, u32, u8),
@@ -156,7 +157,7 @@ pub enum Page {
 }
 
 //分页查询时是否开启排序
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Sort {}
 
 //查询时希望返回卡片上的哪些属性
@@ -171,8 +172,59 @@ pub struct QueryContext {
     parameters: HashMap<String, String>,
 }
 
-type Result<T> = std::result::Result<T, Box<dyn error::Error>>; //因为Error是一个动态类型，大小无法在编译期确定，所以需要用Box分配到堆上
+impl Condition {
+    pub fn new(items: Vec<ConditionItem>, logic_condition_bulks: Vec<LogicConditionBulk>) -> Self {
+        Self { items, logic_condition_bulks }
+    }
 
+    pub fn and(&mut self, item: ConditionItem) -> &mut Self {
+        self.items.push(item);
+        self
+    }
+
+    pub fn and_logic(&mut self, logic_condition_bulk: LogicConditionBulk) -> &mut Self {
+        self.logic_condition_bulks.push(logic_condition_bulk);
+        self
+    }
+}
+
+impl Default for Condition {
+    fn default() -> Self {
+        Self { items: Vec::new(), logic_condition_bulks: Vec::new() }
+    }
+}
+
+impl LogicConditionBulk {
+    pub fn new(groups: Vec<LogicConditionGroup>) -> Self {
+        Self { groups }
+    }
+}
+
+impl Default for LogicConditionBulk {
+    fn default() -> Self {
+        Self { groups: Vec::new() }
+    }
+}
+
+impl LogicConditionGroup {
+    pub fn new(items: Vec<ConditionItem>) -> Self {
+        Self { items }
+    }
+
+    pub fn or(&mut self, item: ConditionItem) -> &mut Self {
+        self.items.push(item);
+        self
+    }
+}
+
+impl Default for LogicConditionGroup {
+    fn default() -> Self {
+        Self { items: Vec::new() }
+    }
+}
+
+
+type Result<T> = std::result::Result<T, Box<dyn error::Error>>; //因为Error是一个动态类型，大小无法在编译期确定，所以需要用Box分配到堆上
 pub async fn query<'a>(condition: Condition, query_context: QueryContext, yields: Yields, page: Page) -> Result<QueryResult<'a>> {
     let mut graph = get_graph(); //可以直接传递异步函数，无需手动固定 Future，这是因为 tokio::sync::OnceCell 的 get_or_init 方法本身支持异步初始化
     let mut result = graph.await.execute(
@@ -240,5 +292,28 @@ mod tests {
             Yields {},
             Page::None,
         ).await.unwrap();
+    }
+
+    #[test]
+    async fn test_condition_serde() {
+        {
+            let mut condition = Condition::default();
+            condition.and(ConditionItem::CardType(CardTypeOperator::AnyIn(vec!["123".to_string()])))
+                .and(ConditionItem::Text(TextOperator::StartsWith("hello".to_string())))
+                .and_logic(LogicConditionBulk::new(
+                    vec![
+                        LogicConditionGroup::new(
+                            vec![
+                                ConditionItem::Number(NumberOperator::GreaterThan(PropertyValue::StaticValue(12)))
+                            ]
+                        )
+                    ]
+                ));
+            println!("{:?}", condition);
+            let serialized = serde_json::to_string(&condition).unwrap();
+            println!("{}", serialized);
+            let condition: Condition = serde_json::from_str(&serialized).unwrap();
+            println!("通过反序列化：{:#?}", condition);
+        }
     }
 }
