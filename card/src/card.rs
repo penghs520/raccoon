@@ -1,21 +1,34 @@
+use std::collections::{HashMap, HashSet};
+use std::fmt::{Display, Formatter, Pointer};
 use common::id_generator;
 use my_proc_macros::Getter;
+use crate::newtypes::{Date, DateTime, LinkDescriptor};
 
 #[derive(Debug, Getter)]
 pub struct Card<'a> {
-    pub id: String,
+    id: String,
     code: String,
     name: String,
     state: CardState,
+    flow_status: Option<FlowStatus>, //不是所有类型的卡都有流动状态，仅工作项类型卡具有
     type_id: &'a str,
     tenant_id: &'a str,
+    create_time: DateTime,
+    update_time: DateTime,
     fields: Vec<Field>,
+    links: HashMap<LinkDescriptor, HashSet<Card<'a>>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Getter)]
 pub struct Field {
-    id: u32,
+    id: String,
     value: FieldValue,
+}
+
+impl Field {
+    pub fn new(id: &str, value: FieldValue) -> Self {
+        Self { id: String::from(id), value }
+    }
 }
 
 #[derive(Debug)]
@@ -23,6 +36,9 @@ pub enum FieldValue {
     Int(i32),
     Float(f32),
     Text(String),
+    Enum(Vec<String>),
+    Date(Date),
+    DateTime(DateTime),
 }
 
 #[derive(Debug, PartialEq)]
@@ -32,16 +48,46 @@ pub enum CardState {
     Abandoned = 3,
 }
 
+impl Display for CardState {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CardState::Active => { write!(f, "Active") }
+            CardState::Archived => { write!(f, "Archived") }
+            CardState::Abandoned => { write!(f, "Abandoned") }
+        }
+    }
+}
+
+#[derive(Debug, Getter)]
+pub struct FlowStatus {
+    flow_id: String,
+    flow_status_id: String,
+}
+
+impl FlowStatus {
+    pub fn new(flow_id: &str, status_id: &str) -> Self {
+        Self {
+            flow_id: String::from(flow_id),
+            flow_status_id: String::from(status_id),
+        }
+    }
+}
+
 impl<'a> Card<'a> {
-    pub fn new(code: String, name: String, type_id: &'a str, tenant_id: &'a str) -> Card<'a> {
+    pub fn new(code: String, name: String, type_id: &'a str, tenant_id: &'a str, flow_status: Option<FlowStatus>, fields: Vec<Field>, links: HashMap<LinkDescriptor, HashSet<Card<'a>>>) -> Card<'a> {
+        let now = DateTime::now();
         Card {
             id: id_generator::generate_id(),
             code,
             name,
             state: CardState::Active,
+            flow_status,
             type_id,
             tenant_id,
-            fields: Vec::new(),
+            create_time: now,
+            update_time: now,
+            fields,
+            links,
         }
     }
 
@@ -69,7 +115,7 @@ mod tests {
 
     #[test]
     fn test_new_card() {
-        let mut card = Card::new("10001".to_string(), "卡片01".to_string(), "1", "1");
+        let mut card = Card::new("10001".to_string(), "卡片01".to_string(), "1", "1", None, vec![], HashMap::new());
         card.code = String::from("10001");
         println!("{:?}", card);
         assert_eq!(card.code, "10001");
@@ -82,8 +128,9 @@ mod tests {
 
     #[test]
     fn test_rename() {
-        let mut card = Card::new("10001".to_string(), "卡片01".to_string(), "1", "1");
+        let mut card = Card::new("10001".to_string(), "卡片01".to_string(), "1", "1", None, vec![], HashMap::new());
         card.rename("第一张卡片");
         assert_eq!(card.name, "第一张卡片");
+        println!("{:?}", card.state);
     }
 }

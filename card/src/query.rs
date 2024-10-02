@@ -3,9 +3,10 @@ use crate::graph::get_graph;
 use neo4rs::{Node};
 use std::collections::HashMap;
 use std::fmt::{Debug, Display};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use std::{error, fmt};
 use serde::{Deserialize, Serialize};
+use crate::newtypes::{LinkDescriptor, Path};
 
 //查询条件
 #[derive(Debug, Serialize, Deserialize)]
@@ -61,19 +62,6 @@ pub enum ReferPoint {
     Parameter, //引用自一个参数卡
 }
 
-//关联关系路径
-#[derive(Debug, Serialize, Deserialize)]
-pub enum Path {
-    Segment(LinkOperator, Box<Path>),
-    Nil,
-}
-
-//关联描述符，由关联关系类型和方向构成
-#[derive(Debug, Serialize, Deserialize)]
-pub enum LinkDescriptor {
-    Src(String),
-    Dest(String),
-}
 
 //数字属性条件项的操作符
 #[derive(Debug, Serialize, Deserialize)]
