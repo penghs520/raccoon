@@ -29,7 +29,6 @@ pub mod neo4j_store {
                 }
             }
             eprintln!("create card failed: {:?}", result.err().unwrap());
-            txn.rollback().await;
             false
         }
 
