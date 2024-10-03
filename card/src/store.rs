@@ -71,10 +71,10 @@ pub mod neo4j_store {
                         create_query.param(key, v.clone())
                     }
                     FieldValue::Date(v) => {
-                        create_query.param(key, v.to_local_date())
+                        create_query.param(key, *v.timestamp())
                     }
                     FieldValue::DateTime(v) => {
-                        create_query.param(key, v.to_local_datetime())
+                        create_query.param(key, *v.timestamp())
                     }
                 }
             }
@@ -115,7 +115,7 @@ pub mod neo4j_store {
 mod tests {
     use std::collections::HashMap;
     use crate::card::{Field, FieldValue, FlowStatus};
-    use crate::newtypes::{Date, DateTime};
+    use crate::newtypes::{Timestamp};
     use super::*;
 
     #[tokio::test]
@@ -125,8 +125,8 @@ mod tests {
             Field::new("int-field", FieldValue::Int(111)),
             Field::new("float-field", FieldValue::Float(111.0)),
             Field::new("enum-field", FieldValue::Enum(vec!["1".to_string(), "2".to_string()])),
-            Field::new("date-field", FieldValue::Date(Date::now())),
-            Field::new("datetime-field", FieldValue::DateTime(DateTime::now()))
+            Field::new("date-field", FieldValue::Date(Timestamp::now())),
+            Field::new("datetime-field", FieldValue::DateTime(Timestamp::now()))
         ];
         let links = HashMap::new();
         let card: Card = Card::new("101".to_string(), "卡片101".to_string(), "t101", "o101", Some(FlowStatus::new("flow-1", "status-1")), fields, links);

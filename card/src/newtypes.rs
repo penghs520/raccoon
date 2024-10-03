@@ -17,47 +17,18 @@ pub enum Path {
     Nil,
 }
 
-#[derive(Debug)]
-pub struct Date {
-    timestamp: i64,
-}
-
-impl Date {
-    pub fn now() -> Self {
-        //SystemTime 提供的时间是基于 UTC 的绝对时间，不依赖于任何时区
-        //duration_since(UNIX_EPOCH).expect("Time went backwards");：计算从 Unix 纪元（1970-01-01 00:00:00 UTC）到现在的持续时间。如果系统时间在 Unix 纪元之前，这将返回一个错误
-        Self { timestamp: SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis() as i64 }
-    }
-
-    pub fn to_local_date(&self) -> NaiveDate {
-        // 将时间戳转换为 DateTime<Utc>
-        let datetime_utc = chrono::DateTime::<Utc>::from_timestamp_millis(self.timestamp).unwrap();
-
-        // 将 DateTime<Utc> 转换为 DateTime<Local>
-        let datetime_local = datetime_utc.with_timezone(&Local);
-
-        // 返回 NaiveDateTime
-        datetime_local.date_naive()
-    }
-
-    // pub fn to_utc_datetime(&self) -> NaiveDateTime {
-    //     chrono::DateTime::from_timestamp_millis(self.timestamp).unwrap().naive_utc()
-    // }
-}
-
 /// 时间戳
-/// 更好的实践：数据库中转换成UtcDateTime或者UtcDate存储, 应用中使用LocalDateTime、LocalDate
-/// 但本产品并不打算支持其他时区，所以都使用本地时区
+/// 最佳实践：数据库和应用层都使用时间戳打交道，输出给前端的也是时间戳，由前端来复杂本地化显示
 #[derive(Getter, Debug, Serialize, Deserialize, Copy, Clone)]
-pub struct DateTime {
+pub struct Timestamp {
     timestamp: i64,
 }
 
-impl DateTime {
+impl Timestamp {
     pub fn now() -> Self {
         //SystemTime 提供的时间是基于 UTC 的绝对时间，不依赖于任何时区
         //duration_since(UNIX_EPOCH).expect("Time went backwards");：计算从 Unix 纪元（1970-01-01 00:00:00 UTC）到现在的持续时间。如果系统时间在 Unix 纪元之前，这将返回一个错误
-        DateTime { timestamp: SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis() as i64 }
+        Timestamp { timestamp: SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis() as i64 }
     }
 
     pub fn to_local_datetime(&self) -> NaiveDateTime {
@@ -78,11 +49,11 @@ impl DateTime {
 
 #[cfg(test)]
 mod test {
-    use crate::newtypes::DateTime;
+    use crate::newtypes::Timestamp;
 
     #[test]
     pub fn test_timestamp() {
-        let timestamp = DateTime::now();
+        let timestamp = Timestamp::now();
         println!("timestamp={:?}", timestamp);
 
         // let utc = timestamp.to_utc_datetime();

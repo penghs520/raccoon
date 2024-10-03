@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter, Pointer};
 use common::id_generator;
 use my_proc_macros::Getter;
-use crate::newtypes::{Date, DateTime, LinkDescriptor};
+use crate::newtypes::{Timestamp, LinkDescriptor};
 
 #[derive(Debug, Getter)]
 pub struct Card<'a> {
@@ -13,8 +13,8 @@ pub struct Card<'a> {
     flow_status: Option<FlowStatus>, //不是所有类型的卡都有流动状态，仅工作项类型卡具有
     type_id: &'a str,
     tenant_id: &'a str,
-    create_time: DateTime,
-    update_time: DateTime,
+    create_time: Timestamp,
+    update_time: Timestamp,
     fields: Vec<Field>,
     links: HashMap<LinkDescriptor, HashSet<Card<'a>>>,
 }
@@ -37,8 +37,8 @@ pub enum FieldValue {
     Float(f32),
     Text(String),
     Enum(Vec<String>),
-    Date(Date),
-    DateTime(DateTime),
+    Date(Timestamp),
+    DateTime(Timestamp),
 }
 
 #[derive(Debug, PartialEq)]
@@ -75,7 +75,7 @@ impl FlowStatus {
 
 impl<'a> Card<'a> {
     pub fn new(code: String, name: String, type_id: &'a str, tenant_id: &'a str, flow_status: Option<FlowStatus>, fields: Vec<Field>, links: HashMap<LinkDescriptor, HashSet<Card<'a>>>) -> Card<'a> {
-        let now = DateTime::now();
+        let now = Timestamp::now();
         Card {
             id: id_generator::generate_id(),
             code,
