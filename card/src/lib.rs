@@ -20,7 +20,7 @@ mod tests {
         println!("{:?}", card);
         println!("{}", card.id);
         assert_eq!(card.code, "10001");
-        assert_eq!(card.type_id, "1");
+        assert_eq!(card.card_type_id, "1");
         assert_eq!(card.tenant_id, "1");
         assert_eq!(card.fields.len(), 0);
         assert_eq!(card.name, "卡片01");

@@ -22,8 +22,6 @@ pub enum Path {
     Nil,
 }
 
-pub type OrgId = CardId;
-
 // pub type CardId = String;  type只是别名，本质上和原类型无区别
 // pub type CardTypeId = String;
 // pub type FieldId = String;

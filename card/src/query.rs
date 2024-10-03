@@ -152,7 +152,9 @@ pub enum Sort {}
 
 //查询时希望返回卡片上的哪些属性
 #[derive(Debug)]
-pub struct Yields {}
+pub struct Yields {
+
+}
 
 //查询发生时的上下文
 #[derive(Debug)]

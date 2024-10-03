@@ -15,8 +15,8 @@ pub struct Card<'a> {
     pub name: String,
     pub state: CardState,
     pub flow_status: Option<FlowStatus>, //不是所有类型的卡都有流动状态，仅工作项类型卡具有
-    pub type_id: &'a str,
-    pub tenant_id: &'a str,
+    pub card_type_id: &'a str,
+    pub org_id: &'a str,
     pub create_time: Timestamp,
     pub update_time: Timestamp,
     pub fields: Vec<Field>,
@@ -78,7 +78,7 @@ impl FlowStatus {
 }
 
 impl<'a> Card<'a> {
-    pub fn new(code: String, name: String, type_id: &'a str, tenant_id: &'a str, flow_status: Option<FlowStatus>, fields: Vec<Field>, links: HashMap<LinkDescriptor, HashSet<Card<'a>>>) -> Card<'a> {
+    pub fn new(code: String, name: String, card_type_id: &'a str, org_id: &'a str, flow_status: Option<FlowStatus>, fields: Vec<Field>, links: HashMap<LinkDescriptor, HashSet<Card<'a>>>) -> Card<'a> {
         let now = Timestamp::now();
         Card {
             id: CardId::new(),
@@ -86,8 +86,8 @@ impl<'a> Card<'a> {
             name,
             state: CardState::Active,
             flow_status,
-            type_id,
-            tenant_id,
+            card_type_id,
+            org_id,
             create_time: now.clone(),
             update_time: now.clone(),
             fields,
@@ -141,8 +141,8 @@ mod tests {
         card.code = String::from("10001");
         println!("{:?}", card);
         assert_eq!(card.code, "10001");
-        assert_eq!(card.type_id, "1");
-        assert_eq!(card.tenant_id, "1");
+        assert_eq!(card.card_type_id, "1");
+        assert_eq!(card.org_id, "1");
         assert_eq!(card.fields.len(), 0);
         assert_eq!(card.name, "卡片01");
         assert_eq!(card.state, CardState::Active);

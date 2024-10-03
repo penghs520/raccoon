@@ -44,14 +44,14 @@ pub mod neo4j_store {
             for field in &card.fields {
                 props_str.push_str(&format!(",`{}`:$`{}`", field.id, field.id))
             }
-            let query = format!("CREATE (n:Card {{ id:$id, state:$state, type_id:$type_id, tenant_id:$tenant_id, create_time:$create_time, update_time:$update_time {flow_status_str} {props_str}}})");
+            let query = format!("CREATE (n:Card {{ id:$id, state:$state, card_type_id:$card_type_id, org_id:$org_id, create_time:$create_time, update_time:$update_time {flow_status_str} {props_str}}})");
             let mut create_query = neo4rs::query(&query)
                 //.param("id", *card.id) 不能移动，因为String没有实现Copy
                 .param("id", card.id.as_str())
                 .param("create_time", *card.create_time)
                 .param("update_time", *card.update_time)
-                .param("type_id", card.type_id)
-                .param("tenant_id", card.tenant_id)
+                .param("card_type_id", card.card_type_id)
+                .param("org_id", card.org_id)
                 .param("state", card.state.to_string());
             if let Some(flow_status) = &card.flow_status {
                 create_query = create_query.param("flow_id", flow_status.flow_id.as_str())
