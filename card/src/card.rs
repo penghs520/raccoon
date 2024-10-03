@@ -1,37 +1,41 @@
 use std::collections::{HashMap, HashSet};
-use std::fmt::{Display, Formatter, Pointer};
-use common::id_generator;
-use my_proc_macros::Getter;
-use crate::newtypes::{Timestamp, LinkDescriptor};
+use std::fmt::{Display, Formatter};
+use std::hash::{Hash, Hasher};
+use serde::{Deserialize, Serialize};
+use crate::newtypes::card_id::CardId;
+use crate::newtypes::field_id::FieldId;
+use crate::newtypes::card_type_id::CardTypeId;
+use crate::newtypes::timestamp::Timestamp;
+use crate::types::LinkDescriptor;
 
-#[derive(Debug, Getter)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Card<'a> {
-    id: String,
-    code: String,
-    name: String,
-    state: CardState,
-    flow_status: Option<FlowStatus>, //不是所有类型的卡都有流动状态，仅工作项类型卡具有
-    type_id: &'a str,
-    tenant_id: &'a str,
-    create_time: Timestamp,
-    update_time: Timestamp,
-    fields: Vec<Field>,
-    links: HashMap<LinkDescriptor, HashSet<Card<'a>>>,
+    pub id: CardId,
+    pub code: String,
+    pub name: String,
+    pub state: CardState,
+    pub flow_status: Option<FlowStatus>, //不是所有类型的卡都有流动状态，仅工作项类型卡具有
+    pub type_id: &'a str,
+    pub tenant_id: &'a str,
+    pub create_time: Timestamp,
+    pub update_time: Timestamp,
+    pub fields: Vec<Field>,
+    pub links: HashMap<LinkDescriptor, HashSet<Card<'a>>>,
 }
 
-#[derive(Debug, Getter)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Field {
-    id: String,
-    value: FieldValue,
+    pub id: FieldId,
+    pub value: FieldValue,
 }
 
 impl Field {
-    pub fn new(id: &str, value: FieldValue) -> Self {
-        Self { id: String::from(id), value }
+    pub fn new(id: FieldId, value: FieldValue) -> Self {
+        Self { id, value }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum FieldValue {
     Int(i32),
     Float(f32),
@@ -41,7 +45,7 @@ pub enum FieldValue {
     DateTime(Timestamp),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum CardState {
     Active = 1,
     Archived = 2,
@@ -58,10 +62,10 @@ impl Display for CardState {
     }
 }
 
-#[derive(Debug, Getter)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FlowStatus {
-    flow_id: String,
-    flow_status_id: String,
+    pub flow_id: String,
+    pub flow_status_id: String,
 }
 
 impl FlowStatus {
@@ -77,15 +81,15 @@ impl<'a> Card<'a> {
     pub fn new(code: String, name: String, type_id: &'a str, tenant_id: &'a str, flow_status: Option<FlowStatus>, fields: Vec<Field>, links: HashMap<LinkDescriptor, HashSet<Card<'a>>>) -> Card<'a> {
         let now = Timestamp::now();
         Card {
-            id: id_generator::generate_id(),
+            id: CardId::new(),
             code,
             name,
             state: CardState::Active,
             flow_status,
             type_id,
             tenant_id,
-            create_time: now,
-            update_time: now,
+            create_time: now.clone(),
+            update_time: now.clone(),
             fields,
             links,
         }
@@ -109,6 +113,24 @@ impl<'a> Card<'a> {
     }
 }
 
+// 手动实现 PartialEq 和 Eq
+impl<'a> PartialEq for Card<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+//Eq 并不需要任何附加的方法实现，而是仅仅表示 PartialEq 的实现满足等价关系的所有属性。实现它只是为了表示您的类型符合更强的等同性约束。
+impl<'a> Eq for Card<'a> {}
+
+// 手动实现 Hash
+impl<'a> Hash for Card<'a> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -125,10 +147,20 @@ mod tests {
         assert_eq!(card.name, "卡片01");
         assert_eq!(card.state, CardState::Active);
     }
+    #[test]
+    fn test_card_serde() {
+        let card_type_id = CardTypeId::from_str("1");
+        let card = Card::new("10001".to_string(), "卡片01".to_string(), &card_type_id, "1", None, vec![], HashMap::new());
+        let json = serde_json::to_string(&card).unwrap();
+        println!("serialize = {}", json);
+        let card = serde_json::from_str::<Card>(&json).unwrap();
+        println!("deserialize = {:?}", card);
+    }
 
     #[test]
     fn test_rename() {
-        let mut card = Card::new("10001".to_string(), "卡片01".to_string(), "1", "1", None, vec![], HashMap::new());
+        let card_type_id = CardTypeId::from_str("1");
+        let mut card = Card::new("10001".to_string(), "卡片01".to_string(), &card_type_id, "1", None, vec![], HashMap::new());
         card.rename("第一张卡片");
         assert_eq!(card.name, "第一张卡片");
         println!("{:?}", card.state);

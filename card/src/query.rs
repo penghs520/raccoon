@@ -3,10 +3,10 @@ use crate::graph::get_graph;
 use neo4rs::{Node};
 use std::collections::HashMap;
 use std::fmt::{Debug, Display};
-use std::time::{Duration, Instant};
+use std::time::{Duration};
 use std::{error, fmt};
 use serde::{Deserialize, Serialize};
-use crate::newtypes::{LinkDescriptor, Path};
+use crate::types::{LinkDescriptor, Path};
 
 //查询条件
 #[derive(Debug, Serialize, Deserialize)]
