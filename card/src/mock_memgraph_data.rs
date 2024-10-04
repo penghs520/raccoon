@@ -1,8 +1,3 @@
-use std::sync::atomic::AtomicI32;
-use std::sync::LazyLock;
-
-pub(crate) static CODE_COUNTER: LazyLock<AtomicI32> = LazyLock::new(|| AtomicI32::new(0));
-
 
 #[cfg(test)]
 mod tests {
