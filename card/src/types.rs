@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use crate::newtypes::card_id::CardId;
 
 //关联描述符，由关联关系类型和方向构成
 #[derive(Debug,
@@ -26,3 +25,10 @@ pub enum Path {
 // pub type CardTypeId = String;
 // pub type FieldId = String;
 // pub type Timestamp = i64;
+
+
+pub enum InternalField {
+    CreateTime,
+    UpdateTime,
+    Creator
+}

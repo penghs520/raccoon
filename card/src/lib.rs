@@ -2,11 +2,12 @@ pub mod card;
 pub mod store;
 pub mod query;
 mod graph;
-mod mock_data;
+mod mock_neo4j_data;
 pub mod newtypes;
 mod events;
 mod relationship;
 mod types;
+mod mock_memgraph_data;
 
 #[cfg(test)]
 mod tests {
@@ -21,7 +22,7 @@ mod tests {
         println!("{}", card.id);
         assert_eq!(card.code, "10001");
         assert_eq!(card.card_type_id, "1");
-        assert_eq!(card.tenant_id, "1");
+        assert_eq!(card.org_id, "1");
         assert_eq!(card.fields.len(), 0);
         assert_eq!(card.name, "卡片01");
         assert_eq!(card.state, CardState::Active);

@@ -28,6 +28,7 @@ pub enum ConditionItem {
     Enum(EnumOperator), //枚举属性条件项
     Date(DateOperator), //日期属性条件项
     Link(LinkOperator), //关联属性条件项
+    MySelf(LinkOperator), //针对卡片自身的关联过滤
 }
 
 //卡片类型条件项的操作符，仅支持AnyIn
@@ -152,9 +153,7 @@ pub enum Sort {}
 
 //查询时希望返回卡片上的哪些属性
 #[derive(Debug)]
-pub struct Yields {
-
-}
+pub struct Yields {}
 
 //查询发生时的上下文
 #[derive(Debug)]
@@ -218,12 +217,12 @@ impl Default for LogicConditionGroup {
 
 type Result<T> = std::result::Result<T, Box<dyn error::Error>>; //因为Error是一个动态类型，大小无法在编译期确定，所以需要用Box分配到堆上
 pub async fn query<'a>(condition: Condition, query_context: QueryContext, yields: Yields, page: Page) -> Result<QueryResult<'a>> {
-    let mut graph = get_graph(); //可以直接传递异步函数，无需手动固定 Future，这是因为 tokio::sync::OnceCell 的 get_or_init 方法本身支持异步初始化
+    let mut graph = get_graph();
     let mut result = graph.await.execute(
-        neo4rs::query("MATCH (p:Person {name: $name}) RETURN p").param("name", "Tom")
+        neo4rs::query("MATCH (c:Card {codeInOrg: $code}) RETURN c").param("code", "1")
     ).await.unwrap();
     while let Ok(Some(row)) = result.next().await {
-        let node: Node = row.get("p").unwrap();
+        let node: Node = row.get("c").unwrap();
         let name: String = node.get("name").unwrap();
         println!("{}", name);
     }
