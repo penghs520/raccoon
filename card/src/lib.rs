@@ -11,8 +11,8 @@ mod mock_memgraph_data;
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
     use crate::card::{Card, CardState};
+    use std::collections::HashMap;
 
     #[test]
     #[test]

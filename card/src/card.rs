@@ -1,12 +1,12 @@
+use crate::newtypes::card_id::CardId;
+use crate::newtypes::card_type_id::CardTypeId;
+use crate::newtypes::field_id::FieldId;
+use crate::newtypes::timestamp::Timestamp;
+use crate::types::LinkDescriptor;
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
-use serde::{Deserialize, Serialize};
-use crate::newtypes::card_id::CardId;
-use crate::newtypes::field_id::FieldId;
-use crate::newtypes::card_type_id::CardTypeId;
-use crate::newtypes::timestamp::Timestamp;
-use crate::types::LinkDescriptor;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Card<'a> {

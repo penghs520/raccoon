@@ -1,10 +1,10 @@
+use chrono::TimeZone;
+use common::id_generator;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::time::SystemTime;
-use chrono::{TimeZone};
-use serde::{Deserialize, Serialize};
-use common::id_generator;
 
 pub mod card_id {
     use super::*;
@@ -206,9 +206,9 @@ pub mod timestamp {
 
 #[cfg(test)]
 mod test {
+    use super::*;
     use crate::newtypes::card_id::CardId;
     use crate::newtypes::timestamp::Timestamp;
-    use super::*;
     #[test]
     pub fn test_card_id() {
         let card_id = CardId::from_str("123");

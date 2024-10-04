@@ -2,10 +2,10 @@ use crate::card::Card;
 use std::future::Future;
 
 pub mod neo4j_store {
-    use neo4rs::{Query, RowStream, Txn};
     use crate::card::{Card, FieldValue};
     use crate::graph::get_graph;
     use crate::newtypes::card_id::CardId;
+    use neo4rs::{Query, RowStream, Txn};
 
     pub struct Neo4jStore;
 
@@ -113,13 +113,13 @@ pub mod neo4j_store {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
+    use super::*;
     use crate::card::{Field, FieldValue, FlowStatus};
     use crate::newtypes::card_id::CardId;
     use crate::newtypes::card_type_id::CardTypeId;
     use crate::newtypes::field_id::FieldId;
     use crate::newtypes::timestamp::Timestamp;
-    use super::*;
+    use std::collections::HashMap;
 
     #[tokio::test]
     async fn test_create_card() {
