@@ -150,6 +150,7 @@ mod tests {
     async fn create_constraint(graph: Graph) {
         let queries = vec![
             "CREATE CONSTRAINT ON (c:Card) ASSERT c.id IS UNIQUE;",
+            "CREATE CONSTRAINT ON (c:Card) ASSERT c.org_id,c.code IS UNIQUE;",
             "CREATE CONSTRAINT ON (c:Card) ASSERT EXISTS (c.state);",
             "CREATE CONSTRAINT ON (c:Card) ASSERT EXISTS (c.org_id);",
             "CREATE CONSTRAINT ON (c:Card) ASSERT EXISTS (c.card_type_id);",

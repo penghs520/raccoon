@@ -1,10 +1,8 @@
 use neo4rs::{ConfigBuilder, Database, Graph};
-use serde::{Deserialize, Serialize};
 use tokio::sync::OnceCell;
 
 //Graph对象本身能够在多线程中clone
 pub(crate) static GLOBAL_GRAPH: OnceCell<Graph> = OnceCell::const_new();
-
 
 const GRAPH_TYPE: GraphType = GraphType::Memgraph;
 

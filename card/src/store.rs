@@ -15,21 +15,20 @@ pub mod neo4j_store {
             let mut txn = graph.start_txn().await.unwrap();
             let create_card_query = Self::build_create_query(card);
             let create_rs_with_member_query = Self::build_create_rs_with_member_query(&card.id, member_id);
-            let result = txn.execute(create_card_query).await;
+            let result = txn.run(create_card_query).await; //在memgraph上不能用execute，因为返回了不正确的结果
             if result.is_ok() {
-                //卡片和卡片创建人的关联
-                let mut result = txn.execute(create_rs_with_member_query).await.unwrap();
-                if !create_rs_with_member_success(&mut result, &mut txn).await {
-                    eprintln!("create card failed, because create relationship with member failed!");
-                    return false;
-                } else {
-                    //todo 创建和其他卡片的关联，不用校验是否关联成功，因为关联的卡片可能不存在，只要语法不报错就可以
-                    txn.commit().await.unwrap();
-                    //todo 发送事件，异步记录操作历史
-                    return true;
+                //卡片和卡片创建人的关联 todo 因为run方法不返回结果，所以不知道是否成功关联
+                let mut result = txn.run(create_rs_with_member_query).await;
+                if result.is_ok() {
+                    return match txn.commit().await {
+                        Ok(_) => true,
+                        Err(err) => {
+                            eprintln!("failed to commit transaction: {:?}", err);
+                            false
+                        }
+                    };
                 }
             }
-            eprintln!("create card failed: {:?}", result.err().unwrap());
             false
         }
 
@@ -44,10 +43,12 @@ pub mod neo4j_store {
             for field in &card.fields {
                 props_str.push_str(&format!(",`{}`:$`{}`", field.id, field.id))
             }
-            let query = format!("CREATE (n:Card {{ id:$id, state:$state, card_type_id:$card_type_id, org_id:$org_id, create_time:$create_time, update_time:$update_time {flow_status_str} {props_str}}})");
+            let query = format!("CREATE (n:Card {{ id:$id, code:$code, name:$name, state:$state, card_type_id:$card_type_id, org_id:$org_id, create_time:$create_time, update_time:$update_time {flow_status_str} {props_str}}})");
             let mut create_query = neo4rs::query(&query)
                 //.param("id", *card.id) 不能移动，因为String没有实现Copy
                 .param("id", card.id.as_str())
+                .param("code", card.code.as_str())
+                .param("name", card.name.as_str())
                 .param("create_time", *card.create_time)
                 .param("update_time", *card.update_time)
                 .param("card_type_id", card.card_type_id)
@@ -85,9 +86,7 @@ pub mod neo4j_store {
 
         fn build_create_rs_with_member_query(card_id: &CardId, member_id: &CardId) -> Query {
             //如果创建成功则会返回1
-            neo4rs::query("MATCH (n:Card {id:$card_id}) MATCH (m:Card {id:$member_id}) \
-                              CREATE (n)-[:creator]->(m) RETURN 1
-                            ")
+            neo4rs::query("MATCH (n:Card {id:$card_id}) MATCH (m:Card {id:$member_id}) CREATE (n)-[:creator]->(m)")
                 .param("card_id", card_id.as_str())
                 .param("member_id", member_id.as_str())
         }
@@ -134,8 +133,8 @@ mod tests {
         ];
         let links = HashMap::new();
         let card_type_id = CardTypeId::from_str("t101");
-        let card: Card = Card::new("101".to_string(), "卡片101".to_string(), &card_type_id, "o101", Some(FlowStatus::new("flow-1", "status-1")), fields, links);
-        assert!(neo4j_store::Neo4jStore::create(&card, &CardId::from_str("m101")).await);
+        let card: Card = Card::new("c106".to_string(), "卡片101".to_string(), &card_type_id, "o101", Some(FlowStatus::new("flow-1", "status-1")), fields, links);
+        assert!(neo4j_store::Neo4jStore::create(&card, &CardId::from_str("m103")).await);
     }
 }
 
