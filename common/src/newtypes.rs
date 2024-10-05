@@ -1,5 +1,3 @@
-use chrono::TimeZone;
-use common::id_generator;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fmt::{Display, Formatter};
@@ -7,6 +5,7 @@ use std::ops::Deref;
 use std::time::SystemTime;
 
 pub mod card_id {
+    use crate::id_generator;
     use super::*;
 
     #[derive(
@@ -55,6 +54,7 @@ pub mod card_id {
 }
 
 pub mod field_id {
+    use crate::id_generator;
     use super::*;
 
     #[derive(
@@ -102,6 +102,7 @@ pub mod field_id {
 }
 
 pub mod card_type_id {
+    use crate::id_generator;
     use super::*;
 
     #[derive(
@@ -115,7 +116,7 @@ pub mod card_type_id {
         Serialize,
         Deserialize,
     )] //为了newtype与底层类型相似，需要派生这些属性，然后还要实现Display
-    pub struct CardTypeId(String); //不要这样使用pub，pub struct CardId(pub String)，因为这样做外部可以任意构造CardId而不经过校验
+    pub struct CardTypeId(String);
 
     impl CardTypeId {
         pub fn from(id: String) -> Self {

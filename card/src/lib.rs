@@ -3,7 +3,6 @@ pub mod store;
 pub mod query;
 mod graph;
 mod mock_neo4j_data;
-pub mod newtypes;
 mod events;
 mod relationship;
 mod types;

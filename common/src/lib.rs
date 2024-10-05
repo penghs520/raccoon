@@ -1,4 +1,5 @@
 pub mod id_generator;
+pub mod newtypes;
 
 pub fn add(left: u64, right: u64) -> u64 {
     left + right

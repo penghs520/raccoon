@@ -1,12 +1,12 @@
-use crate::newtypes::card_id::CardId;
-use crate::newtypes::card_type_id::CardTypeId;
-use crate::newtypes::field_id::FieldId;
-use crate::newtypes::timestamp::Timestamp;
 use crate::types::LinkDescriptor;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
+use common::newtypes::card_id::CardId;
+use common::newtypes::card_type_id::CardTypeId;
+use common::newtypes::field_id::FieldId;
+use common::newtypes::timestamp::Timestamp;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Card<'a> {
@@ -54,6 +54,7 @@ pub enum CardState {
 
 impl Display for CardState {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let c = CardTypeId(String::new());
         match self {
             CardState::Active => { write!(f, "Active") }
             CardState::Archived => { write!(f, "Archived") }
@@ -133,6 +134,7 @@ impl<'a> Hash for Card<'a> {
 
 #[cfg(test)]
 mod tests {
+    use common::newtypes::card_type_id::CardTypeId;
     use super::*;
 
     #[test]

@@ -10,13 +10,24 @@ pub fn generate_id() -> String {
     nanoid!(16, &ALPHABET)
 }
 
+pub trait IdGenerator {
+    fn generate_id() -> String;
+}
+
+impl IdGenerator for String {
+    fn generate_id() -> String {
+        generate_id()
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::id_generator::generate_id;
+    use crate::id_generator::{generate_id, IdGenerator};
     use std::collections::HashSet;
 
     #[test]
     fn it_generates_id() {
+        String::generate_id();
         let mut set = HashSet::new();
         for j in 0..1000_000 {
             set.insert(generate_id());

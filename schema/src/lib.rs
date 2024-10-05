@@ -1,14 +1,17 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+mod card_types;
+mod customize_fields;
+mod relationships;
+mod biz_rules;
+mod schema;
+mod work_flows;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use common::id_generator::IdGenerator;
 
     #[test]
     fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+        let id  = String::generate_id();
+        println!("{}", id);
     }
 }

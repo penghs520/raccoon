@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 common = { path = "../common" }
+schema = { path = "../schema" }
 #my_proc_macros = { path = "../my_proc_macros" }
 neo4rs = "0.8.0"
 once_cell = "1"
