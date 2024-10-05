@@ -18,6 +18,17 @@ pub struct CommonTraitType {
     description: Option<String>,
 }
 
+impl CommonTraitType {
+    pub fn new(id: String, name: String, org_id: String, description: Option<String>) -> Self {
+        Self {
+            id,
+            name,
+            org_id,
+            description,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MemberType {
     id: String,
